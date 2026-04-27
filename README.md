@@ -1,4 +1,4 @@
-# ⚾ MLB Pitcher Performance Predictor
+# ⚾ MLB Pitcher Performance Predictor Project
 
 An AutoML pipeline that predicts pitcher ERA and WHIP using Baseball Savant Statcast data, validates predictions against actual results, and identifies pitchers who significantly over or underperform their underlying metrics.
 
@@ -170,7 +170,8 @@ source venv/bin/activate   # Mac/Linux
 pip install -r requirements.txt
 ```
 
-> Note: PyCaret is a substantial install (~500MB). Allow 2–5 minutes.
+> Note: PyCaret is a substantial install (~500MB). Allow 2–5 minutes. 
+> PyCaret will only work with Python 3.10 or 3.11, it will not work with Python 3.12+
 
 ---
 
@@ -218,11 +219,11 @@ python pitcher_predictor.py
 
 ## Roadmap
 
+- [ ] Update for Hyperparemeter tuning
+- [ ] Predict the 2026 Season
 - [ ] Add Claude API integration to generate automated scouting reports from model outputs
-- [ ] Build NFL module — receiver target share and quarterback efficiency modeling using NFL Next Gen Stats
 - [ ] Streamlit dashboard for interactive pitcher exploration
 - [ ] Aging curve adjustments for multi-year projections
-- [ ] Cross-sport unified evaluation framework
 
 ---
 
@@ -237,6 +238,6 @@ python pitcher_predictor.py
 
 ## Author
 
-Your Name — [LinkedIn](www.linkedin.com/in/steve-adams-fs) | [GitHub](https://github.com/sma61)
+Steve Adams — [LinkedIn](www.linkedin.com/in/steve-adams-fs) | [GitHub](https://github.com/sma61)
 
 *Part of an ongoing sports analytics portfolio exploring predictive modeling across MLB and NFL.*
