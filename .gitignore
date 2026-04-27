@@ -1,0 +1,8 @@
+venv/
+pycaret-env/
+*.csv
+*.png
+__pycache__/
+*.pyc
+.pycaret/
+*.log
