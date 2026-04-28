@@ -96,7 +96,7 @@ The 2025 season serves as a live validation set — predictions are compared dir
 | 17 | Orthogonal Matching Pursuit | 0.1555 | 0.0392 | 0.1977 | 0.0461 | 0.2161 |
 | 18 | Dummy Regressor (baseline) | 0.1607 | 0.0417 | 0.2040 | -0.0159 | 0.2225 |
 
-**Winner: LightGBM** with MAE of 0.0390 — predicting WHIP within 0.039 on average, explaining 92.98% of variance (R² = 0.9298). LightGBM outperformed Random Forest by 32% on MAE and Linear Regression by 19%.
+**Winner: LightGBM** — selected by PyCaret AutoML, then fine-tuned via Bayesian hyperparameter optimization (Optuna, 50 iterations), achieving a 4% further MAE reduction to a final MAE of 0.2414 (R² = 0.9122).
 
 ### Sample 2025 ERA Projections vs Actual
 *Top 20 projected ERA leaders — trained on 2019–2024, validated against actual 2025 results*

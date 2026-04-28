@@ -81,11 +81,14 @@ def prepare_dataframe(df: pd.DataFrame, target: str) -> pd.DataFrame:
 
 
 #FIND BEST MODEL WITH PYCARET
-def find_best_model(df_train: pd.DataFrame, target: str):
+def find_best_model(df_train: pd.DataFrame, target: str, n_iter: int = 100):
     """
     Uses PyCaret to compare all regression models and return the best one.
+    Added Hyperparameter tuning using Optuna which is built into pycaret
     """
-    from pycaret.regression import setup, compare_models, pull, finalize_model, plot_model
+    
+    from pycaret.regression import setup, compare_models, tune_model, finalize_model, pull, plot_model
+
 
     print(f"\n{'='*60}")
     print(f"  PYCARET MODEL COMPARISON — Target: {target}")
@@ -103,29 +106,79 @@ def find_best_model(df_train: pd.DataFrame, target: str):
         html           = False,
     )
 
-    # Compare all models — ranked by MAE by default
+    print("  Comparing all models with default hyperparameters...\n")
     best_model = compare_models(sort="MAE", verbose=True)
 
-    # Pull comparison results as a dataframe
-    results = pull()
+   # Capture and save comparison results
+    comparison_results = pull()
     print(f"\n  Full model comparison:")
-    print(results.to_string())
-
-    # Save comparison table
-    results.to_csv(f"model_comparison_{target}.csv", index=True)
+    print(comparison_results.to_string())
+    comparison_results.to_csv(f"model_comparison_{target}.csv", index=True)
     print(f"\n  Comparison saved to model_comparison_{target}.csv")
-
-    # Finalize best model (trains on full dataset)
-    final_model = finalize_model(best_model)
-
+ 
+    # Extract pre-tuning MAE for the best model
+    best_model_name = type(best_model).__name__
+    pre_tune_mae = comparison_results.iloc[0]["MAE"]
+    pre_tune_r2  = comparison_results.iloc[0]["R2"]
+    print(f"\n  Best model (pre-tuning): {best_model_name}")
+    print(f"    MAE : {pre_tune_mae:.4f}")
+    print(f"    R²  : {pre_tune_r2:.4f}")
+ 
+    # Tune hyperparameters using Bayesian optimization (Optuna) ──
+    print(f"\n{'='*60}")
+    print(f"  HYPERPARAMETER TUNING — {best_model_name}")
+    print(f"  Method: Bayesian optimization via Optuna ({n_iter} iterations)")
+    print(f"{'='*60}\n")
+ 
+    try:
+        tuned_model = tune_model(
+            best_model,
+            optimize        = "MAE",          # Metric to minimize
+            n_iter          = n_iter,          # Number of parameter combos to try
+            search_library  = "optuna",        # Bayesian optimization — smarter than grid/random
+            search_algorithm= "tpe",           # Tree-structured Parzen Estimator
+            verbose         = True,
+            return_train_score = False,
+        )
+ 
+        # Capture post-tuning results
+        tuning_results = pull()
+        post_tune_mae  = tuning_results["MAE"].mean()   # Cross-validated mean
+        post_tune_r2   = tuning_results["R2"].mean()
+ 
+        # Report improvement
+        mae_improvement = ((pre_tune_mae - post_tune_mae) / pre_tune_mae) * 100
+        print(f"\n  Tuning Results — {best_model_name}:")
+        print(f"    Pre-tuning  MAE : {pre_tune_mae:.4f}  |  R² : {pre_tune_r2:.4f}")
+        print(f"    Post-tuning MAE : {post_tune_mae:.4f}  |  R² : {post_tune_r2:.4f}")
+        if mae_improvement > 0:
+            print(f"    Improvement     : {mae_improvement:.1f}% reduction in MAE ✅")
+        else:
+            print(f"    Result          : Default hyperparameters were already optimal — keeping pre-tuned model.")
+            tuned_model = best_model
+ 
+        # Save tuning results
+        tuning_results.to_csv(f"tuning_results_{target}.csv", index=True)
+        print(f"  Tuning results saved to tuning_results_{target}.csv")
+ 
+    except Exception as e:
+        print(f"\n  Tuning failed ({e}) — using best model with default hyperparameters.")
+        tuned_model = best_model
+        post_tune_mae = pre_tune_mae
+ 
+    #Finalize on full dataset
+    print(f"\n  Finalizing model on full training dataset...")
+    final_model = finalize_model(tuned_model)
+ 
     # Feature importance plot (works for tree-based models)
     try:
-        plot_model(best_model, plot="feature", save=True, verbose=False)
+        plot_model(tuned_model, plot="feature", save=True, verbose=False)
         print(f"  Feature importance chart saved.")
     except Exception:
         print(f"  Feature importance chart not available for this model type.")
-
-    return final_model, results
+ 
+    return final_model, comparison_results
+ 
 
 
 # PREDICT 2025 & COMPARE TO ACTUAL
