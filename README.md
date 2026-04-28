@@ -219,7 +219,8 @@ python pitcher_predictor.py
 
 ## Roadmap
 
-- [ ] Update for Hyperparemeter tuning
+- [X] Update for Hyperparemeter tuning
+- [ ] Add confidence intervals to the predictions
 - [ ] Predict the 2026 Season
 - [ ] Add Claude API integration to generate automated scouting reports from model outputs
 - [ ] Streamlit dashboard for interactive pitcher exploration
